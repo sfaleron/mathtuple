@@ -1,6 +1,8 @@
 
 from  __future__ import division
 
+import six
+
 def unexpression_adder(appendable=None):
     if appendable is None:
         appendable = []
@@ -13,7 +15,7 @@ def unexpression_adder(appendable=None):
 __all__, adder = unexpression_adder()
 
 
-from collections import namedtuple, Sized
+from collections import namedtuple, Iterable, Sized
 from     numbers import Number, Integral
 from      string import ascii_lowercase
 from   six.moves import zip as izip
@@ -21,20 +23,117 @@ from   itertools import islice
 
 from    newbinds import NewBinds
 
+def _make_elementwise(inst):
+    binder = NewBinds(locals())
+
+    __slots__ = ()
+
+    def __mul__(self, otherIn):
+        otherOut = self._validate(otherIn)
+
+        if otherOut is NotImplemented:
+            return NotImplemented
+        else:
+            return cls(*[i*j for i,j in izip(self, otherOut)])
+
+    __rmul__ = __mul__
+
+    def __div__(self, otherIn):
+        otherOut = self._validate(otherIn)
+
+        if otherOut is NotImplemented:
+            return NotImplemented
+        else:
+            return cls(*[i/j for i,j in izip(self, otherOut)])
+
+    def __rdiv__(self, otherIn):
+        otherOut = self._validate(otherIn)
+
+        if otherOut is NotImplemented:
+            return NotImplemented
+        else:
+            return cls(*[j/i for i,j in izip(self, otherOut)])
+
+    __div__ = __truediv__
+
+    def __mod__(self, otherIn):
+        otherOut = self._validate(otherIn)
+
+        if otherOut is NotImplemented:
+            return NotImplemented
+        else:
+            return cls(*[i%j for i,j in izip(self, otherOut)])
+
+    def __rmod__(self, otherIn):
+        otherOut = self._validate(otherIn)
+
+        if otherOut is NotImplemented:
+            return NotImplemented
+        else:
+            return cls(*[j%i for i,j in izip(self, otherOut)])
+
+    def __pow__(self, otherIn, modulus=None):
+        otherOut = self._validate(otherIn)
+
+        if otherOut is NotImplemented:
+            return NotImplemented
+        else:
+            return cls(*[pow(i, j, modulus) for i,j in izip(self, otherOut)])
+
+    def __rpow__(self, otherIn):
+        otherOut = self._validate(otherIn)
+
+        if otherOut is NotImplemented:
+            return NotImplemented
+        else:
+            return cls(*[pow(j, i) for i,j in izip(self, otherOut)])
+
+    return type(className, (type(inst),), binder(locals()))(*inst)
+
 @adder
-def mathtuple(className, size, positionNames=True):
+def mathtuple(className, length, positionNames=True):
+    """The constraints on `className` are the same as those on the first arguments
+    of `namedtuple()` and `type()`.
+    `length` is a non-negative integer.
+    The position names are guaranteed to be sensibly set, if `positionNames` is
+    either a boolean or an iterator that yields valid identifiers. Possible
+    values:
 
-    if not (size > 0 and isinstance(size, Integral)):
-        raise ValueError('"size" must be an integer greater than or equal to one')
+    - If an iterator:
 
-    fmtStr = '_{{:0{:d}}}'.format(len(str(size-1)))
+      + Short iterators are padded with generic identifiers
+      + Long iterators are truncated to fit
+
+    - If True (default):
+
+      + If 1 <= length <=  3, then the identifiers are: `x`, `x,y`, or `x,y,z`.
+      + If 4 <= length <= 26, then the trailing part of the lowercase alphabet is
+        used.
+      + If length > 26, the full alphabet is padded in the same manner as an
+        explicit short iterator.
+
+    - If False:
+
+      + All positions are given generic identifiers
+
+    Generic identifiers are an underscore followed with the index, zero-padded
+    to the width of the highest index.
+
+    If a short iterator is passed and it contains collisions with the generic
+    identifiers, the generic identifier is extended by an underscore until a
+    unique identifier is obtained."""
+
+    if not (length >= 0 and isinstance(length, Integral)):
+        raise ValueError('"length" must be a non-negative integer')
+
+    fmtStr = '_{{:0{:d}}}'.format(len(str(length-1)))
 
     if   positionNames is True:
-        if   size <=  3:
-            reifiedSyms = 'xyz'[:size]
+        if   length <=  3:
+            reifiedSyms = 'xyz'[:length]
         else:
-            #  if size >= 26, slice is the whole
-            reifiedSyms = ascii_lowercase[-size:]
+            #  if length >= 26, slice is the whole
+            reifiedSyms = ascii_lowercase[-length:]
 
         reifiedNames = tuple(reifiedSyms)
 
@@ -42,13 +141,13 @@ def mathtuple(className, size, positionNames=True):
         reifiedNames = ()
 
     else:
-        reifiedNames = tuple(islice(positionNames, size))
+        reifiedNames = tuple(islice(positionNames, length))
 
-    reifiedSize  = len(reifiedNames)
+    reifiedLength  = len(reifiedNames)
 
-    if reifiedSize < size:
+    if reifiedLength < length:
         padIds = []
-        for i in range(reifiedSize, size):
+        for i in range(reifiedLength, length):
             padId = fmtStr.format(i)
             while padId in reifiedNames:
                 padId += '_'
@@ -61,13 +160,27 @@ def mathtuple(className, size, positionNames=True):
 
     binder = NewBinds(locals())
 
-    _size  = size
+    _ew       = None
+    _length   = length
+    __slots__ = ()
+
+    if six.PY2:
+        def __repr__(self):
+            return baseClass.__repr__(self)[1:]
+
+    @property
+    def ew(self):
+        if self._ew is None:
+            self._ew = _make_elementwise(self)
+
+        return self._ew
 
     def __new__(cls, *seq):
-        if len(seq) != size:
-            raise TypeError('Size mismatch')
+        if len(seq) != length:
+            raise TypeError('Length mismatch')
+
         for i,j in izip(seq, cls._fields):
-            if not isinstance(i, Number):
+            if not isinstance( i, Number):
                 raise TypeError(j+' is not a Number')
 
         return baseClass.__new__(cls, *seq)
@@ -100,18 +213,39 @@ def mathtuple(className, size, positionNames=True):
 
     __div__ = __truediv__
 
+    def __mod__(self, other):
+        cls = type(self)
+
+        if isinstance(other, Number):
+            return cls(*[i%other for i in self])
+        else:
+            return NotImplemented
+
+    def __pow__(self, other, modulus=None):
+        cls = type(self)
+
+        if isinstance(other, Number):
+            return cls(*[pow(i, other, modulus) for i in self])
+        else:
+            return NotImplemented
+
+
     @staticmethod
     def _validate(otherIn):
         if isinstance(otherIn, Sized):
             otherOut = otherIn
         else:
             if isinstance(otherIn, Iterable):
-                otherOut = tuple(islice(otherIn, size+1))
+                otherOut = tuple(islice(otherIn, length+1))
             else:
                 return NotImplemented
 
-        if len(otherOut) != size:
-            raise TypeError('Sizes do not match')
+        if len(otherOut) != length:
+            raise TypeError('Lengths do not match')
+
+        for i in otherOut:
+            if not isinstance(i, Number):
+                return NotImplemented
 
         return otherOut
 
@@ -124,6 +258,15 @@ def mathtuple(className, size, positionNames=True):
         else:
             return cls(*[i-j for i,j in izip(self, otherOut)])
 
+    def __rsub__(self, otherIn):
+        cls      = type(self)
+        otherOut = self._validate(otherIn)
+
+        if otherOut is NotImplemented:
+            return NotImplemented
+        else:
+            return cls(*[j-i for i,j in izip(self, otherOut)])
+
     def __add__(self, otherIn):
         cls = type(self)
 
@@ -131,6 +274,8 @@ def mathtuple(className, size, positionNames=True):
 
         return ( NotImplemented if otherOut is NotImplemented else
             cls(*[i+j for i,j in izip(self, otherOut)]) )
+
+    __radd__ = __add__
 
     def dist(self, otherIn):
         otherOut = self._validate(otherIn)
@@ -176,7 +321,7 @@ def mathtuple(className, size, positionNames=True):
         return (e if isinstance(e, cls) else cls(*e) for e in it)
 
     classBinds = binder(locals())
-    classBinds.update(size=property(lambda s: s._size))
+    classBinds.update(length=property(lambda s: s._length))
 
     return type(className, (baseClass,), classBinds)
 
@@ -188,7 +333,7 @@ def dot(tup1, tup2):
 
 @adder
 def cross(tup1, tup2):
-    if tup1.size != 3:
+    if tup1.length != 3:
         raise TypeError('Cross products are only supported for mathtuple types of length three')
 
     return tup1.cross(tup2)
