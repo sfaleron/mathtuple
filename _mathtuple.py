@@ -24,6 +24,8 @@ from   itertools import islice
 from    newbinds import NewBinds
 
 def _make_elementwise(inst):
+    cls   = type(inst)
+
     binder = NewBinds(locals())
 
     __slots__ = ()
@@ -38,7 +40,7 @@ def _make_elementwise(inst):
 
     __rmul__ = __mul__
 
-    def __div__(self, otherIn):
+    def __truediv__(self, otherIn):
         otherOut = self._validate(otherIn)
 
         if otherOut is NotImplemented:
@@ -46,7 +48,7 @@ def _make_elementwise(inst):
         else:
             return cls(*[i/j for i,j in izip(self, otherOut)])
 
-    def __rdiv__(self, otherIn):
+    def __rtruediv__(self, otherIn):
         otherOut = self._validate(otherIn)
 
         if otherOut is NotImplemented:
@@ -54,7 +56,8 @@ def _make_elementwise(inst):
         else:
             return cls(*[j/i for i,j in izip(self, otherOut)])
 
-    __div__ = __truediv__
+    __div__  =  __truediv__
+    __rdiv__ = __rtruediv__
 
     def __mod__(self, otherIn):
         otherOut = self._validate(otherIn)
@@ -88,7 +91,7 @@ def _make_elementwise(inst):
         else:
             return cls(*[pow(j, i) for i,j in izip(self, otherOut)])
 
-    return type(className, (type(inst),), binder(locals()))(*inst)
+    return type('ew'+cls.__name__, (cls,), binder(locals()))(*inst)
 
 @adder
 def mathtuple(className, length, positionNames=True):
@@ -160,9 +163,9 @@ def mathtuple(className, length, positionNames=True):
 
     binder = NewBinds(locals())
 
-    _ew       = None
-    _length   = length
+    _ew       = []
     __slots__ = ()
+    _length   = length
 
     if six.PY2:
         def __repr__(self):
@@ -170,10 +173,10 @@ def mathtuple(className, length, positionNames=True):
 
     @property
     def ew(self):
-        if self._ew is None:
-            self._ew = _make_elementwise(self)
+        if not self._ew:
+            self._ew.append(_make_elementwise(self))
 
-        return self._ew
+        return self._ew[0]
 
     def __new__(cls, *seq):
         if len(seq) != length:

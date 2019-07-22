@@ -56,6 +56,9 @@ def test_numpy():
     #print(a/2+range(4))
     #print(b/2+range(4))
 
+    print([1,2,3]+a.ew)
+    print(range(3)+a.ew)
+
 if __name__ == '__main__':
     test_construction()
     test_numpy()

@@ -2,7 +2,7 @@
 Supported arithmetic:
 
 - add and subtract by iterables of equal length (or reversed)
-- p by types registered as a subclass of Number
+- multiplication/division/modulus by types registered as a subclass of Number
 - unary negation
 - unary plus (returns a copy)
 
@@ -17,9 +17,8 @@ Works very much like numpy for these operations, without the bulk. Distinctions 
 - Length mismatches are a ValueError in numpy, but a TypeError here.
 - Some reverse operations are handled that numpy doesn't support.
 
+Element-wise operations that normally work on scalars are available for like-lengthed iterables via the property `ew`.
+
 ----
 
-
-----
-
-Depends on NewBinds
+Depends on NewBinds and six
