@@ -19,9 +19,6 @@ Supported arithmetic (reverse operations are also defined):
 - An element-wise representation is provided for multiplication, division,
   modulus, and powers.
 
-Explicit methods for binary operations are provided, named in the manner of
-the operator module. mul(),
-
 Additionally:
 
 - Dot product

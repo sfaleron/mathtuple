@@ -84,8 +84,8 @@ def mathtuple(className, length, positionNames=True):
 
         reifiedNames = reifiedNames + tuple(padIds)
 
-
     baseClass = namedtuple('_' + className, reifiedNames)
+
 
     binder = NewBinds(locals())
 
@@ -147,6 +147,7 @@ def mathtuple(className, length, positionNames=True):
         instances of the type."""
 
         return (e if isinstance(e, cls) else cls(*e) for e in it)
+
 
     classBinds = binder(locals())
 

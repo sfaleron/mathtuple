@@ -21,7 +21,6 @@ def validate(otherIn, mathTuple):
 
     return type(mathTuple)(*otherOut)
 
-
 def make_ops():
     binder = NewBinds(locals())
 

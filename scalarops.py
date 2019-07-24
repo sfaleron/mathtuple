@@ -7,6 +7,7 @@ from newbinds import NewBinds
 
 ifNumber = lambda f, other: f() if isinstance(other, Number) else NotImplemented
 
+
 def make_ops():
     binder = NewBinds(locals())
 
@@ -18,7 +19,17 @@ def make_ops():
     def __truediv__(self, other):
         return ifNumber(lambda: type(self)(*[i/other for i in self]), other)
 
-    __div__ = __truediv__
+    def __rtruediv__(self, other):
+        return ifNumber(lambda: type(self)(*[other/i for i in self]), other)
+
+    __div__  = __truediv__
+    __rdiv__ = __rtruediv__
+
+    def __floordiv__(self, other):
+        return ifNumber(lambda: type(self)(*[i//other for i in self]), other)
+
+    def __rfloordiv__(self, other):
+        return ifNumber(lambda: type(self)(*[i/other for i in self]), other)
 
     def __mod__(self, other):
         return ifNumber(lambda: type(self)(*[i%other for i in self]), other)
