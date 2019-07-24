@@ -18,12 +18,6 @@ from           . import elementwise as _ew
 
 _mathtuple_signature = object()
 
-_aliases = dict(
-    dist = ['hypot'],
-    norm = ['magnitude'],
-    dot  = ['scalarprod'],
-    cross= ['vectorprod'] )
-
 
 def mathtuple(className, length, positionNames=True):
     """The constraints on `className` are the same as those on the first arguments
@@ -157,7 +151,7 @@ def mathtuple(className, length, positionNames=True):
     classBinds = binder(locals())
 
     classBinds.update(scalarops.make_ops())
-    classBinds.update(vectorops.make_ops(length))
+    classBinds.update(vectorops.make_ops())
 
     classBinds.update(length=property(lambda s: s._length))
 

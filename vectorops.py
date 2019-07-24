@@ -22,7 +22,7 @@ def validate(otherIn, mathTuple):
     return type(mathTuple)(*otherOut)
 
 
-def make_ops(length):
+def make_ops():
     binder = NewBinds(locals())
 
     def __sub__(self, otherIn):
