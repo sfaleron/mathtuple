@@ -1,3 +1,5 @@
 
-from   __future__ import absolute_import
-from . _mathtuple import *
+from __future__ import absolute_import
+
+from   .factory import mathtuple
+from    .binops import *
