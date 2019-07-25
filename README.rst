@@ -1,28 +1,25 @@
 
-A pure-python point/vector type factory. Classes inherit from a namedtuple
+A pure-python point/vector type factory. Classes inherit from a `namedtuple`_
 type. Any non-negative length is allowed, although the cross product is only
 defined for two length-3 instances. Supports Python2 and Python3.
 
 Aims to be lightweight and light-duty (plus a bit). If more features or
-performance are desired, consider numpy or scipy.
+performance are desired, consider `numpy`_ or `scipy`_.
 
 Supported arithmetic (reverse operations are also defined):
 
 - Addition and subtraction by iterables of equal length
-- Multiplication, division, modulus, and powers by scalars
-
-  + Division, true and floor, is supported
-
+- Multiplication, division ("true" and floor), modulus, and powers by scalars
 - Unary negative
 - Unary positive
 
-- An element-wise representation is provided for multiplication, division,
-  modulus, and powers.
+- An element-wise representation is provided for operations that normally
+  have a scalar other-operand: multiplication, division, modulus, and powers.
 
 Additionally:
 
 - Dot product
-- Cross product (if size equals three)
+- Cross product (if length equals three)
 - Distance to another point
 - Magnitude/norm
 - Normalization to unit length
@@ -37,7 +34,9 @@ Distinctions (may not be exhaustive):
 - Some reverse operations are handled that numpy doesn't support.
 
   + Of course, these can be somewhat dubious in utility. Anybody want to
-    take the modulus of a scalar by a vector? It's there if you want it!
+    take the modulus of a scalar by a vector? It's here if you want it!
+
+Tests are not thorough at this time. Use with caution!
 
 ----
 
@@ -45,3 +44,8 @@ Depends on `NewBinds`_ and `six`_
 
 .. _NewBinds: https://github.com/sfaleron/NewBinds
 .. _six: https://pypi.org/project/six/
+
+.. _namedtuple: https://docs.python.org/library/collections.html#collections.namedtuple
+
+.. _numpy: https://numpy.org/
+.. _scipy: https://scipy.org/
