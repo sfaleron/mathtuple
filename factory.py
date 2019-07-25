@@ -13,7 +13,7 @@ import       six
 from    newbinds import NewBinds
 
 from           . import scalarops, vectorops
-from           . import elementwise as _ew
+from           . import elementwise
 
 
 _mathtuple_signature = object()
@@ -102,7 +102,7 @@ def mathtuple(className, length, positionNames=True):
     @property
     def ew(self):
         if not self._ew:
-            self._ew.append(_ew.make_elementwise(self))
+            self._ew.append(elementwise.make_elementwise(self))
 
         return self._ew[0]
 

@@ -41,4 +41,7 @@ Distinctions (may not be exhaustive):
 
 ----
 
-Depends on NewBinds and six
+Depends on `NewBinds`_ and `six`_
+
+.. _NewBinds: https://github.com/sfaleron/NewBinds
+.. _six: https://pypi.org/project/six/
